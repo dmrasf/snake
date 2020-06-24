@@ -19,7 +19,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "%v\n", e)
 		os.Exit(1)
 	}
-	vi := view{Screen: s, LeftCorner: [2]int{0, 0}, RightCorner: [2]int{50, 16}}
+	vi := view{Screen: s, LeftCorner: [2]int{0, 0}, RightCorner: [2]int{70, 20}, IsPaused: false}
 
 	sn := snake{Direction: 3, Body: [][2]int{{4, 2}, {2, 2}}, IsCanMove: true}
 	fo := food{}
@@ -32,9 +32,13 @@ func main() {
 			switch ev := ev.(type) {
 			case *tcell.EventKey:
 				switch ev.Key() {
+				case tcell.KeyTab:
+					vi.IsPaused = !vi.IsPaused
 				case tcell.KeyEscape:
+					if vi.IsPaused {
+						break
+					}
 					close(quit)
-					return
 				case tcell.KeyUp:
 					sn.Direction = 0
 				case tcell.KeyLeft:
@@ -50,23 +54,25 @@ func main() {
 
 loop:
 	for {
-		select {
-		case <-quit:
-			break loop
-		case <-time.After(time.Millisecond * 100):
-		}
-		sn.moveStep()
+		if !vi.IsPaused {
+			select {
+			case <-quit:
+				break loop
+			case <-time.After(time.Millisecond * 150):
+			}
+			sn.moveStep()
 
-		if fo.isTouchMe(sn.Body) {
-			fo.creatFood(sn.Body, vi.LeftCorner, vi.RightCorner)
-			sn.eatFood()
-		}
+			if fo.isTouchMe(sn.Body) {
+				fo.creatFood(sn.Body, vi.LeftCorner, vi.RightCorner)
+				sn.eatFood()
+			}
 
-		if sn.isTouchSelf() || sn.isTouchWall(vi.LeftCorner, vi.RightCorner) {
-			break loop
-		}
+			if sn.isTouchSelf() || sn.isTouchWall(vi.LeftCorner, vi.RightCorner) {
+				break loop
+			}
 
-		vi.updateView(sn.Body, fo.Pos)
+			vi.updateView(sn.Body, fo.Pos)
+		}
 	}
 
 	s.Fini()

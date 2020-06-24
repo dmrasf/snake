@@ -1,6 +1,8 @@
 package main
 
 import (
+	"math/rand"
+
 	"github.com/gdamore/tcell"
 )
 
@@ -8,6 +10,7 @@ type view struct {
 	Screen      tcell.Screen
 	LeftCorner  [2]int
 	RightCorner [2]int
+	IsPaused    bool
 }
 
 func (v *view) getSize() (int, int) {
@@ -15,7 +18,7 @@ func (v *view) getSize() (int, int) {
 }
 
 func (v *view) drawSnake(snake [][2]int) {
-	rgb := tcell.NewHexColor(0xffffff)
+	rgb := tcell.NewHexColor(int32(rand.Int() & 0xffffff))
 	st := tcell.StyleDefault.Background(rgb)
 	for _, item := range snake {
 		v.Screen.SetCell(item[0], item[1], st, ' ')
@@ -40,6 +43,14 @@ func (v *view) drawBorder() {
 	}
 }
 
+func (v *view) drawInstruction() {
+	str := "Controll: up left down right; Exit: esc; Pause: tab"
+	for i, item := range str {
+		v.Screen.SetContent(v.LeftCorner[0]+i, v.RightCorner[1]+1,
+			item, nil, tcell.StyleDefault)
+	}
+}
+
 func (v *view) drawFood(f [2]int) {
 	rgb := tcell.NewHexColor(0x00ff00)
 	st := tcell.StyleDefault.Background(rgb)
@@ -52,5 +63,6 @@ func (v *view) updateView(snake [][2]int, food [2]int) {
 	v.drawSnake(snake)
 	v.drawBorder()
 	v.drawFood(food)
+	v.drawInstruction()
 	v.Screen.Show()
 }
