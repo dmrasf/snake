@@ -2,9 +2,10 @@ package main
 
 type snake struct {
 	//  0; 1; 2; 3
-	Direction int
-	Body      [][2]int
-	IsCanMove bool
+	Direction     int
+	Body          [][2]int
+	IsCanMove     bool
+	TailDirection int
 }
 
 // Get the current direction of the snake
@@ -25,8 +26,26 @@ func (sn *snake) getCurrentDirection() int {
 	}
 }
 
+func (sn *snake) setTailDirection() {
+	l := len(sn.Body)
+	ox := sn.Body[l-1][0] - sn.Body[l-2][0]
+	oy := sn.Body[l-1][1] - sn.Body[l-2][1]
+	switch {
+	case ox == 0 && oy > 0:
+		sn.TailDirection = 2
+	case ox == 0 && oy < 0:
+		sn.TailDirection = 0
+	case ox > 0 && oy == 0:
+		sn.TailDirection = 3
+	case ox < 0 && oy == 0:
+		sn.TailDirection = 1
+	}
+}
+
 // Snake moves one step
 func (sn *snake) moveStep() {
+	sn.setTailDirection()
+
 	currentDirection := sn.getCurrentDirection()
 	var dir int
 	for i := len(sn.Body) - 1; i > 0; i-- {
@@ -51,20 +70,20 @@ func (sn *snake) moveStep() {
 
 }
 
-// Add food to the head
+// Add food to the tail
 func (sn *snake) eatFood() {
-	nextHead := [][2]int{sn.Body[0]}
-	switch sn.getCurrentDirection() {
+	newBody := sn.Body[len(sn.Body)-1]
+	switch sn.TailDirection {
 	case 0:
-		nextHead[0][1] -= 1
+		newBody[1] -= 1
 	case 1:
-		nextHead[0][0] -= 2
+		newBody[0] -= 2
 	case 2:
-		nextHead[0][1] += 1
+		newBody[1] += 1
 	case 3:
-		nextHead[0][0] += 2
+		newBody[0] += 2
 	}
-	sn.Body = append(nextHead, sn.Body...)
+	sn.Body = append(sn.Body, newBody)
 }
 
 func (sn *snake) isTouchSelf() bool {
