@@ -21,7 +21,7 @@ func main() {
 	}
 	vi := view{Screen: s, LeftCorner: [2]int{0, 0}, RightCorner: [2]int{70, 20}, IsPaused: false}
 
-	sn := snake{Direction: 3, Body: [][2]int{{4, 2}, {2, 2}}, IsCanMove: true}
+	sn := snake{Direction: 3, Body: [][2]int{{4, 2}, {2, 2}}, IsCanMove: true, Speed: 100}
 	fo := food{}
 	fo.creatFood(sn.Body, vi.LeftCorner, vi.RightCorner)
 
@@ -58,20 +58,20 @@ loop:
 			select {
 			case <-quit:
 				break loop
-			case <-time.After(time.Millisecond * 150):
-			}
-			sn.moveStep()
+			case <-time.After(time.Millisecond * sn.Speed):
+				sn.moveStep()
 
-			if fo.isTouchMe(sn.Body) {
-				fo.creatFood(sn.Body, vi.LeftCorner, vi.RightCorner)
-				sn.eatFood()
-			}
+				if fo.isTouchMe(sn.Body) {
+					fo.creatFood(sn.Body, vi.LeftCorner, vi.RightCorner)
+					sn.eatFood()
+				}
 
-			if sn.isTouchSelf() || sn.isTouchWall(vi.LeftCorner, vi.RightCorner) {
-				break loop
-			}
+				if sn.isTouchSelf() || sn.isTouchWall(vi.LeftCorner, vi.RightCorner) {
+					break loop
+				}
 
-			vi.updateView(sn.Body, fo.Pos)
+				vi.updateView(sn, fo)
+			}
 		}
 	}
 

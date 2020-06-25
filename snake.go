@@ -1,11 +1,14 @@
 package main
 
+import "time"
+
 type snake struct {
 	//  0; 1; 2; 3
 	Direction     int
 	Body          [][2]int
 	IsCanMove     bool
 	TailDirection int
+	Speed         time.Duration
 }
 
 // Get the current direction of the snake

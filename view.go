@@ -1,6 +1,8 @@
 package main
 
 import (
+	"strconv"
+
 	"github.com/gdamore/tcell"
 )
 
@@ -60,11 +62,21 @@ func (v *view) drawFood(f [2]int) {
 	v.Screen.SetCell(f[0]+1, f[1], st, ' ')
 }
 
-func (v *view) updateView(snake [][2]int, food [2]int) {
+func (v *view) drawScore(sn snake) {
+	score := len(sn.Body) * 500 / int(sn.Speed)
+	str := "Score: " + strconv.Itoa(score)
+	for i, item := range str {
+		v.Screen.SetContent(v.LeftCorner[0]+i, v.RightCorner[1]+2,
+			item, nil, tcell.StyleDefault)
+	}
+}
+
+func (v *view) updateView(sn snake, fo food) {
 	v.Screen.Clear()
-	v.drawSnake(snake)
+	v.drawSnake(sn.Body)
 	v.drawBorder()
-	v.drawFood(food)
+	v.drawFood(fo.Pos)
 	v.drawInstruction()
+	v.drawScore(sn)
 	v.Screen.Show()
 }
