@@ -1,8 +1,6 @@
 package main
 
 import (
-	"math/rand"
-
 	"github.com/gdamore/tcell"
 )
 
@@ -18,9 +16,13 @@ func (v *view) getSize() (int, int) {
 }
 
 func (v *view) drawSnake(snake [][2]int) {
-	rgb := tcell.NewHexColor(int32(rand.Int() & 0xffffff))
+	rgb := tcell.NewHexColor(0xffffff)
 	st := tcell.StyleDefault.Background(rgb)
-	for _, item := range snake {
+	v.Screen.SetCell(snake[0][0], snake[0][1], st, ' ')
+	v.Screen.SetCell(snake[0][0]+1, snake[0][1], st, ' ')
+	rgb = tcell.NewHexColor(0xf0ff0f)
+	st = tcell.StyleDefault.Background(rgb)
+	for _, item := range snake[1:] {
 		v.Screen.SetCell(item[0], item[1], st, ' ')
 		v.Screen.SetCell(item[0]+1, item[1], st, ' ')
 	}
