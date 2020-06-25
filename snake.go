@@ -4,7 +4,7 @@ import "time"
 
 type snake struct {
 	//  0; 1; 2; 3
-	Direction     int
+	Direction     chan int
 	Body          [][2]int
 	IsCanMove     bool
 	TailDirection int
@@ -45,21 +45,36 @@ func (sn *snake) setTailDirection() {
 	}
 }
 
+func (sn *snake) checkDirectionSame(direction int) bool {
+	currentDirection := sn.getCurrentDirection()
+	if currentDirection%2 == direction%2 && currentDirection != direction {
+		return false
+	}
+	return true
+}
+
 // Snake moves one step
-func (sn *snake) moveStep() {
+func (sn *snake) moveStep(direction int) {
+	currentDirection := sn.getCurrentDirection()
+
+	if !sn.checkDirectionSame(direction) {
+		return
+	}
+
 	sn.setTailDirection()
 
-	currentDirection := sn.getCurrentDirection()
 	var dir int
 	for i := len(sn.Body) - 1; i > 0; i-- {
 		sn.Body[i][0] = sn.Body[i-1][0]
 		sn.Body[i][1] = sn.Body[i-1][1]
 	}
-	if currentDirection%2 == sn.Direction%2 {
+
+	if direction == -1 {
 		dir = currentDirection
 	} else {
-		dir = sn.Direction
+		dir = direction
 	}
+
 	switch dir {
 	case 0:
 		sn.Body[0][1] -= 1

@@ -19,9 +19,9 @@ func main() {
 		fmt.Fprintf(os.Stderr, "%v\n", e)
 		os.Exit(1)
 	}
-	vi := view{Screen: s, LeftCorner: [2]int{0, 0}, RightCorner: [2]int{70, 20}, IsPaused: false}
+	vi := view{Screen: s, LeftCorner: [2]int{0, 0}, RightCorner: [2]int{100, 30}, IsPaused: false}
 
-	sn := snake{Direction: 3, Body: [][2]int{{4, 2}, {2, 2}}, IsCanMove: true, Speed: 100}
+	sn := snake{Direction: make(chan int), Body: [][2]int{{4, 2}, {2, 2}}, IsCanMove: true, Speed: 100}
 	fo := food{}
 	fo.creatFood(sn.Body, vi.LeftCorner, vi.RightCorner)
 
@@ -31,22 +31,20 @@ func main() {
 			ev := s.PollEvent()
 			switch ev := ev.(type) {
 			case *tcell.EventKey:
-				switch ev.Key() {
-				case tcell.KeyTab:
+				switch {
+				case ev.Key() == tcell.KeyTab:
 					vi.IsPaused = !vi.IsPaused
-				case tcell.KeyEscape:
-					if vi.IsPaused {
-						break
-					}
+				case ev.Key() == tcell.KeyEscape && !vi.IsPaused:
 					close(quit)
-				case tcell.KeyUp:
-					sn.Direction = 0
-				case tcell.KeyLeft:
-					sn.Direction = 1
-				case tcell.KeyDown:
-					sn.Direction = 2
-				case tcell.KeyRight:
-					sn.Direction = 3
+					close(sn.Direction)
+				case ev.Key() == tcell.KeyUp && !vi.IsPaused && sn.checkDirectionSame(0):
+					sn.Direction <- 0
+				case ev.Key() == tcell.KeyLeft && !vi.IsPaused && sn.checkDirectionSame(1):
+					sn.Direction <- 1
+				case ev.Key() == tcell.KeyDown && !vi.IsPaused && sn.checkDirectionSame(2):
+					sn.Direction <- 2
+				case ev.Key() == tcell.KeyRight && !vi.IsPaused && sn.checkDirectionSame(3):
+					sn.Direction <- 3
 				}
 			}
 		}
@@ -58,20 +56,21 @@ loop:
 			select {
 			case <-quit:
 				break loop
+			case direction := <-sn.Direction:
+				sn.moveStep(direction)
 			case <-time.After(time.Millisecond * sn.Speed):
-				sn.moveStep()
-
-				if fo.isTouchMe(sn.Body) {
-					fo.creatFood(sn.Body, vi.LeftCorner, vi.RightCorner)
-					sn.eatFood()
-				}
-
-				if sn.isTouchSelf() || sn.isTouchWall(vi.LeftCorner, vi.RightCorner) {
-					break loop
-				}
-
-				vi.updateView(sn, fo)
+				sn.moveStep(-1)
 			}
+			if fo.isTouchMe(sn.Body) {
+				fo.creatFood(sn.Body, vi.LeftCorner, vi.RightCorner)
+				sn.eatFood()
+			}
+
+			if sn.isTouchSelf() || sn.isTouchWall(vi.LeftCorner, vi.RightCorner) {
+				break loop
+			}
+
+			vi.updateView(sn, fo)
 		}
 	}
 
