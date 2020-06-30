@@ -63,7 +63,7 @@ func (v *view) drawFood(f [2]int) {
 }
 
 func (v *view) drawScore(sn snake) {
-	score := len(sn.Body)
+	score := len(sn.Body) * 10
 	str := "Score: " + strconv.Itoa(score)
 	for i, item := range str {
 		v.Screen.SetContent(v.LeftCorner[0]+i, v.RightCorner[1]+2,
